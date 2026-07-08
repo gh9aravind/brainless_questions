@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>കടങ്കഥ ചലഞ്ച്</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Noto+Sans+Malayalam:wght@500;700;800&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg-deep: #1F1235;
+    --bg-deep2: #150C26;
+    --pink: #FF3E7F;
+    --yellow: #FFD23F;
+    --mint: #3EE6B0;
+    --cream: #FFF6E9;
+    --lav: #8B7FD6;
+  }
+
+  *{ box-sizing: border-box; }
+
+  html, body{
+    margin:0; padding:0; height:100%;
+    background: radial-gradient(circle at 20% 10%, #2A1A4A 0%, var(--bg-deep) 45%, var(--bg-deep2) 100%);
+    font-family: 'Poppins', sans-serif;
+    color: var(--cream);
+    overflow-x: hidden;
+  }
+
+  .stage{
+    min-height: 100svh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding: 24px 16px;
+    position: relative;
+  }
+
+  .dot{
+    position:absolute;
+    border-radius:50%;
+    opacity:.55;
+    animation: floaty 6s ease-in-out infinite;
+  }
+  @keyframes floaty{
+    0%,100%{ transform: translateY(0) rotate(0deg); }
+    50%{ transform: translateY(-18px) rotate(180deg); }
+  }
+
+  .eyebrow{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--yellow);
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  h1.title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: clamp(28px, 7vw, 44px);
+    margin: 0 0 26px 0;
+    text-align:center;
+    color: var(--cream);
+    text-shadow: 3px 3px 0 var(--pink);
+  }
+
+  .card{
+    width:100%;
+    max-width: 480px;
+    background: rgba(255,255,255,0.06);
+    border: 2px solid rgba(255,255,255,0.14);
+    border-radius: 28px;
+    padding: 28px 24px 30px;
+    backdrop-filter: blur(14px);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+    position:relative;
+  }
+
+  /* ---- name / account screen ---- */
+  .name-icon{
+    font-size: 48px;
+    text-align:center;
+    margin-bottom: 6px;
+  }
+  .name-card h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size: 22px;
+    text-align:center;
+    margin: 0 0 4px;
+  }
+  .name-card p{
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-weight:600;
+    text-align:center;
+    opacity:.8;
+    margin: 0 0 20px;
+    font-size: 14px;
+  }
+
+  input#nameInput{
+    width:100%;
+    padding: 14px 18px;
+    font-family:'Noto Sans Malayalam', 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.25);
+    color: var(--cream);
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  input#nameInput::placeholder{ color: rgba(255,246,233,0.45); }
+  input#nameInput:focus{
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 4px rgba(255,210,63,0.18);
+  }
+
+  .start-btn{
+    width:100%;
+    margin-top: 14px;
+    padding: 15px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--bg-deep2);
+    background: var(--yellow);
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #c99e1c;
+  }
+  .start-btn:active{ transform: translateY(4px); box-shadow: 0 2px 0 #c99e1c; }
+
+  .name-error{
+    color: var(--pink);
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-weight:600;
+    font-size: 13px;
+    text-align:center;
+    margin-top: 8px;
+    min-height: 18px;
+  }
+
+  .lb-link-btn{
+    width:100%;
+    margin-top: 16px;
+    padding: 12px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--yellow);
+    background: transparent;
+    border: 2px solid rgba(255,210,63,0.4);
+    border-radius: 16px;
+    cursor: pointer;
+  }
+  .lb-link-btn:active{ transform: translateY(2px); }
+
+  .back-btn{
+    width:100%;
+    margin-top: 18px;
+    padding: 13px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--cream);
+    background: var(--lav);
+    border: none;
+    border-radius: 16px;
+    cursor:pointer;
+    box-shadow: 0 5px 0 #5f52a3;
+  }
+  .back-btn:active{ transform: translateY(3px); box-shadow: 0 2px 0 #5f52a3; }
+
+  /* ---- quiz screen (unchanged) ---- */
+  .badge-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom: 18px;
+  }
+
+  .qbadge{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: 15px;
+    background: var(--pink);
+    color: var(--cream);
+    padding: 6px 16px;
+    border-radius: 999px;
+    box-shadow: 0 4px 0 #b81f56;
+  }
+
+  .progress-track{
+    flex:1;
+    margin-left: 14px;
+    height: 8px;
+    background: rgba(255,255,255,0.12);
+    border-radius: 999px;
+    overflow:hidden;
+  }
+  .progress-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--yellow), var(--mint));
+    border-radius: 999px;
+    transition: width .4s ease;
+  }
+
+  .bubble{
+    background: var(--cream);
+    color: #2A1745;
+    font-family: 'Noto Sans Malayalam', sans-serif;
+    font-weight: 700;
+    font-size: clamp(17px, 4.6vw, 20px);
+    line-height: 1.65;
+    padding: 22px 20px;
+    border-radius: 20px;
+    position: relative;
+    min-height: 100px;
+    display:flex;
+    align-items:center;
+  }
+  .bubble::after{
+    content:"";
+    position:absolute;
+    bottom:-16px;
+    left: 40px;
+    width:0; height:0;
+    border-left: 16px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 18px solid var(--cream);
+  }
+
+  form.answer-form{ margin-top: 30px; }
+
+  input#answerInput{
+    width:100%;
+    padding: 14px 18px;
+    font-family:'Noto Sans Malayalam', 'Poppins', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.25);
+    background: rgba(0,0,0,0.25);
+    color: var(--cream);
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  input#answerInput::placeholder{ color: rgba(255,246,233,0.45); }
+  input#answerInput:focus{
+    border-color: var(--yellow);
+    box-shadow: 0 0 0 4px rgba(255,210,63,0.18);
+  }
+
+  button#submitBtn{
+    width:100%;
+    margin-top: 14px;
+    padding: 15px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    letter-spacing: .02em;
+    color: var(--bg-deep2);
+    background: var(--yellow);
+    border: none;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 0 #c99e1c;
+    transition: transform .08s ease, box-shadow .08s ease;
+  }
+  button#submitBtn:active{ transform: translateY(4px); box-shadow: 0 2px 0 #c99e1c; }
+  button#submitBtn:focus-visible{ outline: 3px solid var(--mint); outline-offset: 2px; }
+
+  .character{
+    font-size: 54px;
+    text-align:center;
+    margin-top: 18px;
+    height: 64px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .character span{ display:inline-block; }
+  .bounce{ animation: bounce .6s ease; }
+  @keyframes bounce{
+    0%{ transform: scale(0.5) rotate(-10deg); opacity:0; }
+    50%{ transform: scale(1.25) rotate(6deg); }
+    100%{ transform: scale(1) rotate(0deg); opacity:1; }
+  }
+  .shake{ animation: shake .5s ease; }
+  @keyframes shake{
+    0%,100%{ transform: translateX(0) rotate(0deg); }
+    20%{ transform: translateX(-8px) rotate(-8deg); }
+    40%{ transform: translateX(8px) rotate(8deg); }
+    60%{ transform: translateX(-6px) rotate(-5deg); }
+    80%{ transform: translateX(6px) rotate(5deg); }
+  }
+
+  .feedback-text{
+    text-align:center;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+    min-height: 24px;
+    margin-top: 4px;
+  }
+  .feedback-text.correct{ color: var(--mint); }
+  .feedback-text.wrong{ color: var(--pink); }
+
+  .ans-reveal{
+    text-align:center;
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-weight:600;
+    font-size: 15px;
+    color: rgba(255,246,233,0.75);
+    margin-top: 6px;
+    min-height: 20px;
+  }
+
+  .next-btn{
+    display:none;
+    width:100%;
+    margin-top: 16px;
+    padding: 13px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--cream);
+    background: var(--lav);
+    border: none;
+    border-radius: 16px;
+    cursor:pointer;
+    box-shadow: 0 5px 0 #5f52a3;
+  }
+  .next-btn:active{ transform: translateY(3px); box-shadow: 0 2px 0 #5f52a3; }
+
+  /* ---- done / leaderboard screen ---- */
+  .done-screen{ text-align:center; }
+  .done-screen .emoji{ font-size: 64px; }
+  .done-screen h2{
+    font-family:'Baloo 2', sans-serif;
+    font-size: 26px;
+    margin: 10px 0 6px;
+  }
+  .done-screen p{
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-weight:600;
+    opacity:.85;
+    margin: 0 0 18px;
+  }
+  .restart-btn{
+    padding: 13px 28px;
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:16px;
+    color: var(--bg-deep2);
+    background: var(--mint);
+    border:none;
+    border-radius: 16px;
+    cursor:pointer;
+    box-shadow: 0 5px 0 #1fae82;
+  }
+  .restart-btn:active{ transform: translateY(3px); box-shadow: 0 2px 0 #1fae82; }
+
+  .lb-wrap{
+    margin-top: 26px;
+    text-align:left;
+  }
+  .lb-title{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size: 17px;
+    text-align:center;
+    color: var(--yellow);
+    margin-bottom: 12px;
+  }
+  .lb-list{
+    list-style:none;
+    margin:0; padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .lb-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-family:'Poppins', sans-serif;
+  }
+  .lb-row.me{
+    border-color: var(--yellow);
+    background: rgba(255,210,63,0.12);
+  }
+  .lb-rank{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    width: 26px;
+    color: var(--mint);
+  }
+  .lb-name{
+    flex:1;
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-weight:700;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .lb-score{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    color: var(--pink);
+    font-size: 14px;
+  }
+  .lb-status{
+    text-align:center;
+    font-family:'Noto Sans Malayalam', sans-serif;
+    font-size: 13px;
+    opacity:.7;
+    margin-top: 6px;
+  }
+
+  .hidden{ display:none !important; }
+
+  @media (prefers-reduced-motion: reduce){
+    .dot, .bounce, .shake{ animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage" id="stage">
+  <div class="eyebrow">ചിരി ഗ്യാരണ്ടി 😂</div>
+  <h1 class="title">കടങ്കഥ ചലഞ്ച്</h1>
+
+  <!-- Name / account screen -->
+  <div class="card name-card" id="nameCard">
+    <div class="name-icon">🙋</div>
+    <h2>നിന്റെ പേര് പറയൂ</h2>
+    <p>ലീഡർബോർഡിൽ ഈ പേരാണ് കാണിക്കുക</p>
+    <input type="text" id="nameInput" placeholder="ഉദാ: അരവിന്ദ്" autocomplete="off" maxlength="24">
+    <button class="start-btn" id="startBtn">കളി തുടങ്ങാം</button>
+    <div class="name-error" id="nameError"></div>
+    <button class="lb-link-btn" id="goToLbBtn" type="button">🏆 ലീഡർബോർഡ് കാണാം</button>
+  </div>
+
+  <!-- Standalone leaderboard screen -->
+  <div class="card hidden" id="standaloneLbCard">
+    <div class="lb-title">🏆 ലീഡർബോർഡ്</div>
+    <ul class="lb-list" id="lbListStandalone"></ul>
+    <div class="lb-status" id="lbStatusStandalone"></div>
+    <button class="back-btn" id="backFromLbBtn" type="button">← തിരികെ പോകാം</button>
+  </div>
+
+  <!-- Quiz screen -->
+  <div class="card hidden" id="quizCard">
+    <div class="badge-row">
+      <div class="qbadge" id="qBadge">ചോദ്യം 1</div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+
+    <div class="bubble" id="riddleText"></div>
+
+    <form class="answer-form" id="answerForm">
+      <input type="text" id="answerInput" placeholder="നിന്റെ ഉത്തരം ഇവിടെ ടൈപ്പ് ചെയ്യൂ..." autocomplete="off">
+      <button type="submit" id="submitBtn">സബ്മിറ്റ് ചെയ്യൂ</button>
+    </form>
+
+    <div class="character" id="character"></div>
+    <div class="feedback-text" id="feedbackText"></div>
+    <div class="ans-reveal" id="ansReveal"></div>
+
+    <button class="next-btn" id="nextBtn" type="button">അടുത്ത ചോദ്യം →</button>
+  </div>
+
+  <!-- Done + leaderboard screen -->
+  <div class="card done-screen hidden" id="doneCard">
+    <div class="emoji">🎉</div>
+    <h2>കളി കഴിഞ്ഞു!</h2>
+    <p id="scoreText"></p>
+    <button class="restart-btn" id="restartBtn">വീണ്ടും കളിക്കാം</button>
+
+    <div class="lb-wrap">
+      <div class="lb-title">🏆 ലീഡർബോർഡ്</div>
+      <ul class="lb-list" id="lbList"></ul>
+      <div class="lb-status" id="lbStatus"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="doneCardOff"></div>
+</div>
+
+<script>
+  // ================= SUPABASE CONFIG =================
+  // 👉 ഇവിടെ നിന്റെ Supabase project-ന്റെ URL ഉം anon key ഉം ഇടണം.
+  const SUPABASE_URL = 'https://fyewxdeimjovshmwjbej.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_RIyHV5RERXbJdxloNh9_yQ_EI01Py7_';
+  let supabaseClient = null;
+  try {
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && window.supabase) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+  } catch (e) { console.error('Supabase init failed', e); }
+
+  // ---- Add more riddles here anytime ----
+  // answers: exact accepted answers (numbers, word-forms, short phrases - any variant you want to accept as-is)
+  // keywordGroups: for sentence-style answers - if the user's text contains ALL words in
+  //                ANY one group, it's accepted, regardless of how they phrase the rest.
+  const riddles = [
+    {
+      q: "ഒരു പ്ലെയിനിൽ 504 കട്ടകൾ ഉണ്ടായിരുന്നു അതിൽ നിന്ന് ഒരു കട്ട താഴേക്ക് പോയി. ബാക്കി എത്ര കട്ടകൾ ഉണ്ട് പ്ലെയിനിൽ?",
+      a: "503",
+      answers: ["503", "അഞ്ഞൂറ്റിമൂന്ന്", "അഞ്ഞൂറ്റി മൂന്ന്", "500", "അഞ്ഞൂറ്"]
+    },
+    {
+      q: "ഒരു ആനയെ എങ്ങനെ ഫ്രിഡ്ജിൽ കയറ്റും?",
+      a: "ഫ്രിഡ്ജ് തുറന്ന് ആനയെ അകത്ത് കയറ്റും",
+      keywordGroups: [["ഫ്രിഡ്ജ്", "കയറ്റ"], ["ഫ്രിഡ്ജ്", "അകത്ത്"]]
+    },
+    {
+      q: "ജിറാഫിനെ എങ്ങനെ ഫ്രിഡ്ജിൽ കയറ്റും?",
+      a: "ഫ്രിഡ്ജ് തുറന്ന് ആനയെ മാറ്റി ജിറാഫിനെ കയറ്റും",
+      keywordGroups: [["ഫ്രിഡ്ജ്", "ആന", "ജിറാഫ്"]]
+    },
+    {
+      q: "കാട്ടിലെ രാജാവിന്റെ കല്യാണം ആയിരുന്നു. ഒരു മൃഗം ഒഴികെ ബാക്കി എല്ലാവരും പോയി. ആരാണ് കല്യാണത്തിന് പോകാഞ്ഞത്?",
+      a: "ഫ്രിഡ്ജിൽ ഉള്ള ജിറാഫ്",
+      keywordGroups: [["ഫ്രിഡ്ജ്", "ജിറാഫ്"]]
+    }
+  ];
+
+  let current = 0;
+  let score = 0;
+  let playerName = '';
+
+  const nameCard = document.getElementById('nameCard');
+  const nameInput = document.getElementById('nameInput');
+  const startBtn = document.getElementById('startBtn');
+  const nameError = document.getElementById('nameError');
+  const goToLbBtn = document.getElementById('goToLbBtn');
+  const standaloneLbCard = document.getElementById('standaloneLbCard');
+  const lbListStandalone = document.getElementById('lbListStandalone');
+  const lbStatusStandalone = document.getElementById('lbStatusStandalone');
+  const backFromLbBtn = document.getElementById('backFromLbBtn');
+
+  const qBadge = document.getElementById('qBadge');
+  const progressFill = document.getElementById('progressFill');
+  const riddleText = document.getElementById('riddleText');
+  const answerForm = document.getElementById('answerForm');
+  const answerInput = document.getElementById('answerInput');
+  const submitBtn = document.getElementById('submitBtn');
+  const character = document.getElementById('character');
+  const feedbackText = document.getElementById('feedbackText');
+  const ansReveal = document.getElementById('ansReveal');
+  const nextBtn = document.getElementById('nextBtn');
+  const quizCard = document.getElementById('quizCard');
+  const doneCard = document.getElementById('doneCard');
+  const scoreText = document.getElementById('scoreText');
+  const restartBtn = document.getElementById('restartBtn');
+  const lbList = document.getElementById('lbList');
+  const lbStatus = document.getElementById('lbStatus');
+
+  function normalize(str){
+    return str.trim().toLowerCase().replace(/[\s.,!?"'​]/g, '');
+  }
+
+  function checkAnswer(userAns, item){
+    const norm = normalize(userAns);
+    if(!norm) return false;
+
+    // 1. exact match against any accepted answer/variant
+    const acceptedList = item.answers || [item.a];
+    if(acceptedList.some(ans => normalize(ans) === norm)) return true;
+
+    // 2. keyword-group match: all keywords in ANY one group must be present
+    if(item.keywordGroups){
+      return item.keywordGroups.some(group =>
+        group.every(kw => norm.includes(normalize(kw)))
+      );
+    }
+    return false;
+  }
+
+  // ---- Screen 0: name entry ----
+  startBtn.addEventListener('click', function(){
+    const val = nameInput.value.trim();
+    if(!val){
+      nameError.textContent = 'ദയവായി പേര് ടൈപ്പ് ചെയ്യൂ';
+      return;
+    }
+    playerName = val;
+    nameError.textContent = '';
+    nameCard.classList.add('hidden');
+    quizCard.classList.remove('hidden');
+    loadQuestion();
+  });
+  nameInput.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') startBtn.click();
+  });
+
+  // ---- Quiz logic ----
+  function loadQuestion(){
+    const item = riddles[current];
+    qBadge.textContent = `ചോദ്യം ${current + 1} / ${riddles.length}`;
+    progressFill.style.width = `${(current / riddles.length) * 100}%`;
+    riddleText.textContent = item.q;
+    answerInput.value = '';
+    answerInput.disabled = false;
+    submitBtn.disabled = false;
+    character.innerHTML = '';
+    character.className = 'character';
+    feedbackText.textContent = '';
+    feedbackText.className = 'feedback-text';
+    ansReveal.textContent = '';
+    nextBtn.style.display = 'none';
+    answerForm.style.display = 'block';
+    setTimeout(() => answerInput.focus(), 50);
+  }
+
+  function showResult(isCorrect, correctAnswer){
+    answerInput.disabled = true;
+    submitBtn.disabled = true;
+
+    if(isCorrect){
+      score++;
+      character.innerHTML = '<span>🤣</span>';
+      character.classList.add('bounce');
+      feedbackText.textContent = 'ശരിയുത്തരം! 🎯';
+      feedbackText.classList.add('correct');
+      ansReveal.textContent = '';
+    } else {
+      character.innerHTML = '<span>🙈</span>';
+      character.classList.add('shake');
+      feedbackText.textContent = 'അയ്യോ, തെറ്റി!';
+      feedbackText.classList.add('wrong');
+      ansReveal.textContent = `ശരിയുത്തരം: ${correctAnswer}`;
+    }
+    nextBtn.style.display = 'block';
+  }
+
+  answerForm.addEventListener('submit', function(e){
+    e.preventDefault();
+    const userAns = answerInput.value;
+    if(!userAns.trim()) return;
+    const item = riddles[current];
+    const isCorrect = checkAnswer(userAns, item);
+    showResult(isCorrect, item.a);
+  });
+
+  nextBtn.addEventListener('click', function(){
+    current++;
+    if(current >= riddles.length){
+      progressFill.style.width = '100%';
+      quizCard.classList.add('hidden');
+      doneCard.classList.remove('hidden');
+      scoreText.textContent = `${playerName}, നിന്റെ സ്കോർ: ${score} / ${riddles.length}`;
+      submitScoreAndShowLeaderboard();
+    } else {
+      loadQuestion();
+    }
+  });
+
+  restartBtn.addEventListener('click', function(){
+    current = 0;
+    score = 0;
+    doneCard.classList.add('hidden');
+    quizCard.classList.remove('hidden');
+    loadQuestion();
+  });
+
+  // ---- Leaderboard (Supabase) ----
+  async function submitScoreAndShowLeaderboard(){
+    if(!supabaseClient){
+      lbStatus.textContent = 'Leaderboard സെറ്റപ്പ് ചെയ്തിട്ടില്ല (Supabase config മിസ്സിംഗ്)';
+      return;
+    }
+    lbStatus.textContent = 'സ്കോർ സേവ് ചെയ്യുന്നു...';
+    try {
+      const { error: insertError } = await supabaseClient
+        .from('leaderboard')
+        .insert([{ name: playerName, score: score, total: riddles.length }]);
+      if(insertError) throw insertError;
+      await loadLeaderboard(lbList, lbStatus);
+    } catch(err){
+      console.error(err);
+      lbStatus.textContent = 'Leaderboard ലോഡ് ചെയ്യുന്നതിൽ പിശക്';
+    }
+  }
+
+  async function loadLeaderboard(listEl, statusEl){
+    if(!supabaseClient){
+      statusEl.textContent = 'Leaderboard സെറ്റപ്പ് ചെയ്തിട്ടില്ല (Supabase config മിസ്സിംഗ്)';
+      return;
+    }
+    statusEl.textContent = 'ലോഡ് ചെയ്യുന്നു...';
+    try {
+      const { data, error } = await supabaseClient
+        .from('leaderboard')
+        .select('name, score, total, created_at')
+        .order('score', { ascending: false })
+        .order('created_at', { ascending: true })
+        .limit(10);
+      if(error) throw error;
+
+      listEl.innerHTML = '';
+      if(!data.length){
+        statusEl.textContent = 'ഇതുവരെ ആരും കളിച്ചിട്ടില്ല - ആദ്യമായി കളിക്കൂ!';
+        return;
+      }
+      data.forEach((row, i) => {
+        const li = document.createElement('li');
+        li.className = 'lb-row' + (row.name === playerName && row.score === score ? ' me' : '');
+        li.innerHTML = `
+          <span class="lb-rank">${i + 1}</span>
+          <span class="lb-name">${row.name}</span>
+          <span class="lb-score">${row.score}/${row.total}</span>
+        `;
+        listEl.appendChild(li);
+      });
+      statusEl.textContent = '';
+    } catch(err){
+      console.error(err);
+      statusEl.textContent = 'Leaderboard ലോഡ് ചെയ്യുന്നതിൽ പിശക്';
+    }
+  }
+
+  // ---- Standalone leaderboard navigation (from the name/start screen) ----
+  goToLbBtn.addEventListener('click', function(){
+    nameCard.classList.add('hidden');
+    standaloneLbCard.classList.remove('hidden');
+    loadLeaderboard(lbListStandalone, lbStatusStandalone);
+  });
+
+  backFromLbBtn.addEventListener('click', function(){
+    standaloneLbCard.classList.add('hidden');
+    nameCard.classList.remove('hidden');
+  });
+
+  // ambient floating dots
+  (function ambient(){
+    const colors = ['#FF3E7F', '#FFD23F', '#3EE6B0', '#8B7FD6'];
+    for(let i=0;i<14;i++){
+      const d = document.createElement('div');
+      d.className = 'dot';
+      const size = 6 + Math.random()*10;
+      d.style.width = size+'px';
+      d.style.height = size+'px';
+      d.style.background = colors[i % colors.length];
+      d.style.left = Math.random()*100+'vw';
+      d.style.top = Math.random()*100+'vh';
+      d.style.animationDelay = (Math.random()*4)+'s';
+      d.style.animationDuration = (5+Math.random()*3)+'s';
+      document.getElementById('stage').appendChild(d);
+    }
+  })();
+</script>
+
+</body>
+</html>
